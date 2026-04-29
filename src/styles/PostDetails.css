@@ -1,0 +1,241 @@
+/* ── Shell ── */
+.postdetail-shell {
+  min-height: 100vh;
+  background: var(--background);
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    sans-serif;
+  padding: 1.5rem 1rem;
+}
+
+/* ── Loading / Error states ── */
+.postdetail-loading {
+  padding: 3rem;
+  text-align: center;
+  color: #888;
+}
+
+.postdetail-error {
+  padding: 3rem;
+  text-align: center;
+}
+
+.postdetail-error p {
+  color: #e74c3c;
+}
+
+.postdetail-error-btn {
+  margin-top: 12px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: none;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+/* ── Content wrapper ── */
+.postdetail-content {
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+/* ── Back button ── */
+.postdetail-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.938rem;
+  margin-bottom: 1.2rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* ── Card ── */
+.postdetail-card {
+  background: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.09);
+}
+
+.postdetail-card img {
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+}
+
+.postdetail-body {
+  padding: 1.2rem 1.4rem;
+}
+
+/* ── Pet type badge ── */
+.postdetail-pet-badge {
+  background: #f0f4ff;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4a6fa5;
+}
+
+/* ── Caption & author ── */
+.postdetail-caption {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 10px 0 4px;
+  color: #111;
+}
+
+.postdetail-author {
+  color: #999;
+  font-size: 0.813rem;
+  margin: 0;
+}
+
+/* ── Action buttons ── */
+.postdetail-actions {
+  display: flex;
+  gap: 20px;
+  margin: 1.2rem 0;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 1rem;
+}
+
+.postdetail-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.postdetail-action-btn.liked {
+  color: #e0245e;
+}
+
+.postdetail-action-btn.saved {
+  color: #4a6fa5;
+}
+
+.postdetail-comments-count {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.875rem;
+  color: #555;
+}
+
+/* ── Comments section ── */
+.postdetail-comments {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 1rem;
+}
+
+.postdetail-comments h3 {
+  margin: 0 0 14px;
+  font-size: 0.938rem;
+  font-weight: 700;
+}
+
+.postdetail-no-comments {
+  color: #bbb;
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+}
+
+.postdetail-comment-list {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+}
+
+.postdetail-comment-item {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.postdetail-comment-avatar {
+  background: #f0f0f0;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.813rem;
+  flex-shrink: 0;
+}
+
+.postdetail-comment-username {
+  font-weight: 700;
+  font-size: 0.813rem;
+}
+
+.postdetail-comment-text {
+  margin: 2px 0 0;
+  font-size: 0.875rem;
+  color: #333;
+}
+
+/* ── Comment input ── */
+.postdetail-comment-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.postdetail-comment-input {
+  flex: 1;
+  padding: 9px 13px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.postdetail-comment-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(184, 166, 230, 0.18);
+}
+
+.postdetail-comment-submit {
+  padding: 9px 18px;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+/* ── Login prompt ── */
+.postdetail-login-prompt {
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.postdetail-login-prompt button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #4a6fa5;
+  font-weight: 700;
+  padding: 0;
+  font-size: 0.875rem;
+}

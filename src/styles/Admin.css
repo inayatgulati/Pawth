@@ -1,0 +1,340 @@
+/* ── Shell ── */
+.admin-shell {
+  min-height: 100vh;
+  background: #f7f8fa;
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    sans-serif;
+}
+
+/* ── Header ── */
+.admin-header {
+  background: #111;
+  color: #fff;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.admin-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 0.813rem;
+}
+
+/* ── Content ── */
+.admin-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* ── Summary cards ── */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 2rem;
+}
+
+.admin-stat-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-stat-icon {
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 1.375rem;
+}
+
+.admin-stat-num {
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.admin-stat-label {
+  margin: 0;
+  font-size: 0.813rem;
+  color: #444;
+  font-weight: 600;
+}
+
+.admin-stat-subtitle {
+  margin: 0;
+  font-size: 0.688rem;
+  color: #aaa;
+}
+
+/* ── Posts count card ── */
+.admin-posts-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-posts-card p:first-child {
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.admin-posts-card p:last-child {
+  margin: 0;
+  font-size: 0.813rem;
+  color: #888;
+}
+
+/* ── Tabs ── */
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.admin-tab-btn {
+  padding: 10px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.admin-tab-btn.active {
+  background: #111;
+  color: #fff;
+}
+
+.admin-tab-btn.inactive {
+  background: #e8e8e8;
+  color: #444;
+}
+
+/* ── Error / loading ── */
+.admin-error {
+  color: #e74c3c;
+}
+
+.admin-loading {
+  color: #888;
+}
+
+/* ── Role filter ── */
+.admin-role-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.admin-role-filter-label {
+  font-size: 0.813rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.admin-role-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.admin-role-btn.active {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+.admin-role-btn.inactive {
+  border-color: #ddd;
+  background: #fff;
+  color: #444;
+}
+
+/* ── Users table ── */
+.admin-table-wrap {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead {
+  background: #f8f9fa;
+}
+
+.admin-th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.813rem;
+  color: #444;
+}
+
+.admin-td {
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.admin-td-email {
+  color: #888;
+  font-size: 0.813rem;
+}
+
+.admin-display-name {
+  color: #888;
+  font-size: 0.75rem;
+  margin-left: 6px;
+}
+
+.admin-status-active {
+  color: #27ae60;
+  font-weight: 600;
+  font-size: 0.813rem;
+}
+
+.admin-status-suspended {
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 0.813rem;
+}
+
+.admin-protected {
+  font-size: 0.75rem;
+  color: #bbb;
+}
+
+.admin-action-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+/* ── Role badge ── */
+.role-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.role-badge.admin {
+  background: #fde8e8;
+  color: #c0392b;
+}
+
+.role-badge.member {
+  background: #e8f5e9;
+  color: #27ae60;
+}
+
+.role-badge.user {
+  background: #fff3e0;
+  color: #e67e22;
+}
+
+/* ── Posts grid ── */
+.admin-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.admin-post-card {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.admin-post-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.admin-post-body {
+  padding: 10px 12px;
+}
+
+.admin-post-type {
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.688rem;
+  font-weight: 600;
+}
+
+.admin-post-caption {
+  margin: 6px 0 2px;
+  font-weight: 600;
+  font-size: 0.813rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-post-meta {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.admin-delete-post-btn {
+  width: 100%;
+  padding: 7px 0;
+  border-radius: 6px;
+  border: none;
+  background: #fdf0f0;
+  color: #e74c3c;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.813rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
