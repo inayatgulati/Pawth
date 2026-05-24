@@ -24,7 +24,7 @@ import {
 import "../App.css";
 import "../styles/Petplacespage.css";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBuOwVKIxgzjnQ4IxdfHhuX7akkQ-uUPrc";
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 const CATEGORIES = [
   {
