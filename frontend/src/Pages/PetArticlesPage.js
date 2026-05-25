@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from "react";
-import "./PetArticlesExplorer.css";
-
-const API_KEY = "YOUR_ANTHROPIC_API_KEY";
+import "../styles/PetArticlesExplorer.css";
 
 const CATEGORIES = [
   "All",
@@ -13,6 +11,7 @@ const CATEGORIES = [
   "Housing",
 ];
 
+const API_KEY = process.env.REACT_APP_ANTHROPIC_API_KEY;
 function HeartIcon({ filled }) {
   return filled ? (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="#c0392b" stroke="#c0392b" strokeWidth="1.5">
