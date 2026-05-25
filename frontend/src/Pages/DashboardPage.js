@@ -473,6 +473,13 @@ export default function DashboardPage() {
           <span>Places</span>
         </button>
         <button
+  className={location.pathname === "/articles" ? "active" : ""}
+  onClick={() => navigate("/articles")}
+>
+  <BookOpen size={22} />
+  <span>Articles</span>
+</button>
+        <button
           className={location.pathname === "/events" ? "active" : ""}
           onClick={() => navigate("/events")}
         >
@@ -483,20 +490,6 @@ export default function DashboardPage() {
           className={location.pathname === "/create" ? "active" : ""}
           onClick={() => navigate(token ? "/create" : "/login")}
         >
-          <button
-  className={location.pathname === "/articles" ? "active" : ""}
-  onClick={() => navigate("/articles")}
->
-  <BookOpen size={22} />
-  <span>Articles</span>
-</button>
-<button
-  className={location.pathname === "/create" ? "active" : ""}
-  onClick={() => navigate(token ? "/create" : "/login")}
->
-  <PlusSquare size={22} />
-  <span>Create</span>
-</button>
           <PlusSquare size={22} />
           <span>Create</span>
         </button>
