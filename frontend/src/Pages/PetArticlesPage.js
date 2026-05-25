@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   Home,
@@ -20,13 +20,13 @@ const API_URL = process.env.REACT_APP_API_URL;
 const QUICK_PETS = ["dog", "cat", "rabbit", "fish", "hamster", "parrot", "turtle"];
 const CATEGORIES = ["All", "Health", "Nutrition", "Behavior", "Training", "Grooming", "Housing"];
 
-const CAT_COLORS = {
-  Health:    { bg: "#e8f5ee", color: "#1a5c32" },
-  Nutrition: { bg: "#edf5e2", color: "#2d5a10" },
-  Behavior:  { bg: "#eeecfd", color: "#3b3190" },
-  Training:  { bg: "#e6f0f8", color: "#1a4470" },
-  Grooming:  { bg: "#fbe8f0", color: "#7a2048" },
-  Housing:   { bg: "#faeedd", color: "#6b3a0a" },
+const CATEGORY_STYLES = {
+  Health: { background: "#e8f5ee", color: "#1a5c32" },
+  Nutrition: { background: "#edf5e2", color: "#2d5a10" },
+  Behavior: { background: "#eeecfd", color: "#3b3190" },
+  Training: { background: "#e6f0f8", color: "#1a4470" },
+  Grooming: { background: "#fbe8f0", color: "#7a2048" },
+  Housing: { background: "#faeedd", color: "#6b3a0a" },
 };
 
 export default function PetArticlesPage() {
@@ -36,372 +36,324 @@ export default function PetArticlesPage() {
 
   const [query, setQuery] = useState("");
   const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [savedArticles, setSavedArticles] = useState({});
+  const [notes, setNotes] = useState({});
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("browse");
-  const [saved, setSaved] = useState({});
-  const [notes, setNotes] = useState({});
-  const [noteModal, setNoteModal] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [noteArticle, setNoteArticle] = useState(null);
   const [noteText, setNoteText] = useState("");
 
-  const handleSearch = async (pet) => {
-    const q = pet || query.trim();
-    if (!q) return;
-    setQuery(q);
-    setActiveFilter("All");
+  const savedList = Object.values(savedArticles).flat();
+  const savedCount = savedList.length;
+  const presentCategories = new Set(articles.map((article) => article.category));
+
+  const filteredArticles =
+    activeFilter === "All"
+      ? articles
+      : articles.filter((article) => article.category === activeFilter);
+
+  const handleSearch = async (selectedPet) => {
+    const pet = (selectedPet || query).trim().toLowerCase();
+    if (!pet) return;
+
+    setQuery(pet);
     setActiveTab("browse");
+    setActiveFilter("All");
     setLoading(true);
+    setError("");
+
     try {
-      const res = await fetch(`${API_URL}/api/ai/generate-event`, {
+      const response = await fetch(`${API_URL}/api/ai/generate-event`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: `You are a pet care knowledge expert. Return ONLY a valid JSON array, no markdown, no explanation.
-Return exactly 6 helpful articles about: ${q}
-Each item: {"id":"unique-kebab-slug","title":"...","pet":"${q.toLowerCase()}","category":"<one of: Health, Nutrition, Behavior, Training, Grooming, Housing>","summary":"2-3 sentence helpful advice."}`,
+          prompt: `You are a pet care knowledge expert. Return ONLY a valid JSON array. Do not include markdown fences, preamble, or trailing text.
+Return exactly 6 helpful articles about: ${pet}
+Each item must follow this format: {"id":"unique-kebab-slug","title":"...","pet":"${pet}","category":"<one of: Health, Nutrition, Behavior, Training, Grooming, Housing>","summary":"2-3 sentence helpful advice."}`,
         }),
       });
-      const data = await res.json();
-      const text = (data.result || "").replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(text);
-      setArticles(parsed);
-    } catch {
+
+      if (!response.ok) {
+        throw new Error("Could not generate articles right now.");
+      }
+
+      const data = await response.json();
+      const cleanText = (data.result || "[]").replace(/```json|```/g, "").trim();
+      const parsedArticles = JSON.parse(cleanText);
+
+      setArticles(Array.isArray(parsedArticles) ? parsedArticles : []);
+    } catch (err) {
+      console.error(err);
       setArticles([]);
+      setError("Something went wrong. Check your backend AI route and Anthropic API key.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const isSaved = (article) => {
+    return Boolean(savedArticles[article.pet]?.some((saved) => saved.id === article.id));
   };
 
   const toggleSave = (article) => {
-    const pet = article.pet;
-    setSaved((prev) => {
-      const group = prev[pet] || [];
-      const exists = group.find((a) => a.id === article.id);
+    setSavedArticles((prev) => {
+      const petGroup = prev[article.pet] || [];
+      const alreadySaved = petGroup.some((saved) => saved.id === article.id);
+
       return {
         ...prev,
-        [pet]: exists
-          ? group.filter((a) => a.id !== article.id)
-          : [...group, article],
+        [article.pet]: alreadySaved
+          ? petGroup.filter((saved) => saved.id !== article.id)
+          : [...petGroup, article],
       };
     });
   };
 
-  const isSaved = (id, pet) => !!(saved[pet]?.find((a) => a.id === id));
-
-  const openNote = (article) => {
-    setNoteModal(article);
+  const openNoteModal = (article) => {
+    setNoteArticle(article);
     setNoteText(notes[article.id] || "");
   };
 
   const saveNote = () => {
-    if (!noteModal) return;
-    setNotes((prev) => ({ ...prev, [noteModal.id]: noteText.trim() }));
-    setNoteModal(null);
+    if (!noteArticle) return;
+    setNotes((prev) => ({ ...prev, [noteArticle.id]: noteText.trim() }));
+    setNoteArticle(null);
+    setNoteText("");
   };
 
-  const savedAll = Object.values(saved).flat();
-  const savedCount = savedAll.length;
-
-  const filteredArticles = activeFilter === "All"
-    ? articles
-    : articles.filter((a) => a.category === activeFilter);
-
-  const presentCategories = new Set(articles.map((a) => a.category));
-
   const ArticleCard = ({ article }) => {
-    const s = isSaved(article.id, article.pet);
+    const saved = isSaved(article);
     const note = notes[article.id];
-    const catStyle = CAT_COLORS[article.category] || { bg: "#f0f0f0", color: "#333" };
+    const categoryStyle = CATEGORY_STYLES[article.category] || {
+      background: "var(--accent)",
+      color: "var(--text)",
+    };
+
     return (
-      <div style={{
-        background: "#fff",
-        border: "1px solid var(--border)",
-        borderRadius: 18,
-        padding: "14px 16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        boxShadow: "0 2px 10px rgba(44,44,44,0.05)",
-        transition: "box-shadow 0.2s",
-        breakInside: "avoid",
-        marginBottom: 12,
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-          <div style={{ fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.4, flex: 1, color: "var(--text)" }}>
-            {article.title}
-          </div>
-          <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+      <article className="article-card">
+        <div className="article-card-header">
+          <h2>{article.title}</h2>
+          <div className="article-actions">
             <button
-              onClick={() => openNote(article)}
-              title={note ? "Edit note" : "Add note"}
-              style={{
-                width: 30, height: 30, border: "none", background: "none", cursor: "pointer",
-                borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                color: note ? "#1a4470" : "#aaa",
-              }}
+              type="button"
+              className={note ? "article-icon active-note" : "article-icon"}
+              onClick={() => openNoteModal(article)}
+              aria-label={note ? "Edit note" : "Add note"}
             >
-              <FileText size={15} />
+              <FileText size={16} />
             </button>
+
             <button
+              type="button"
+              className={saved ? "article-icon saved" : "article-icon"}
               onClick={() => toggleSave(article)}
-              title={s ? "Unsave" : "Save"}
-              style={{
-                width: 30, height: 30, border: "none", background: "none", cursor: "pointer",
-                borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                color: s ? "#e0245e" : "#aaa",
-              }}
+              aria-label={saved ? "Unsave article" : "Save article"}
             >
-              <Heart size={15} fill={s ? "#e0245e" : "none"} />
+              <Heart size={16} fill={saved ? "#e0245e" : "none"} />
             </button>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <span style={{
-            fontSize: "0.75rem", fontWeight: 500, padding: "2px 9px",
-            borderRadius: 999, background: "var(--accent)", color: "var(--muted-text)",
-          }}>{article.pet}</span>
-          <span style={{
-            fontSize: "0.75rem", fontWeight: 600, padding: "2px 9px",
-            borderRadius: 999, background: catStyle.bg, color: catStyle.color,
-          }}>{article.category}</span>
+        <div className="article-tags">
+          <span className="article-pet-tag">{article.pet}</span>
+          <span className="article-category-tag" style={categoryStyle}>
+            {article.category}
+          </span>
         </div>
 
-        <p style={{ fontSize: "0.813rem", color: "var(--muted-text)", lineHeight: 1.65, margin: 0 }}>
-          {article.summary}
-        </p>
+        <p className="article-summary">{article.summary}</p>
 
-        {note && (
-          <div style={{
-            fontSize: "0.75rem", color: "#1a4470",
-            background: "#e6f0f8", padding: "6px 10px",
-            borderLeft: "2px solid #1a4470", lineHeight: 1.5,
-          }}>
-            {note}
-          </div>
-        )}
+        {note && <div className="article-note">{note}</div>}
 
         <button
+          type="button"
+          className="article-read-more"
           onClick={() => alert(`Ask your AI assistant:\n"Tell me more about: ${article.title}"`)}
-          style={{
-            fontSize: "0.813rem", color: "var(--secondary)", background: "none",
-            border: "none", padding: 0, cursor: "pointer", textAlign: "left",
-            fontWeight: 500,
-          }}
         >
           Read more →
         </button>
-      </div>
+      </article>
     );
   };
 
   return (
     <div className="app-shell">
-      {/* Top bar */}
       <header className="topbar">
         <h1 className="topbar-logo">🐾 Pawth</h1>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+
+        <div className="topbar-actions">
           {user?.role === "admin" && (
-            <button
-              onClick={() => navigate("/admin")}
-              style={{
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "5px 11px", borderRadius: 6, border: "none",
-                background: "#111", color: "#fff", cursor: "pointer",
-                fontSize: 12, fontWeight: 600,
-              }}
-            >
-              <ShieldCheck size={13} /> Admin
+            <button className="admin-pill" onClick={() => navigate("/admin")}>
+              <ShieldCheck size={14} /> Admin
             </button>
           )}
+
           {user ? (
-            <div
-              onClick={() => navigate("/profile")}
-              style={{
-                width: 32, height: 32, borderRadius: "50%", overflow: "hidden",
-                cursor: "pointer", border: "2px solid var(--border)", flexShrink: 0,
-              }}
-            >
+            <button className="profile-bubble" onClick={() => navigate("/profile")}>
               {user.profilePicUrl ? (
-                <img src={user.profilePicUrl} alt="profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={user.profilePicUrl} alt="profile" />
               ) : (
-                <div style={{
-                  width: "100%", height: "100%", background: "var(--primary)",
-                  color: "white", display: "flex", alignItems: "center",
-                  justifyContent: "center", fontWeight: 700, fontSize: 13,
-                }}>
-                  {user.username?.[0]?.toUpperCase()}
-                </div>
+                <span>{user.username?.[0]?.toUpperCase()}</span>
               )}
-            </div>
+            </button>
           ) : (
-            <button className="badge-btn" onClick={() => navigate("/login")}>Log in</button>
+            <button className="badge-btn" onClick={() => navigate("/login")}>
+              Log in
+            </button>
           )}
         </div>
       </header>
 
-      <main className="main">
-        {/* Search */}
-        <div style={{ marginBottom: 12 }}>
-          <div className="search-wrap" style={{ display: "flex", gap: 8 }}>
-            <div style={{ position: "relative", flex: 1 }}>
-              <Search size={15} style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", color: "#aaa", pointerEvents: "none" }} />
-              <input
-                className="search-input"
-                placeholder="Search by pet (e.g. cat, dog, rabbit...)"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-            </div>
-            <button
-              onClick={() => handleSearch()}
-              style={{
-                padding: "0 18px", borderRadius: 999, border: "none",
-                background: "var(--primary)", color: "var(--text)",
-                fontWeight: 600, fontSize: "0.875rem", cursor: "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
+      <main className="main articles-main">
+        <section className="articles-intro">
+          <p className="small-text">AI pet care guide</p>
+          <h2>Find quick care articles for your pet</h2>
+          <p>
+            Search any pet type and Pawth will generate helpful articles you can save,
+            filter, and annotate.
+          </p>
+        </section>
+
+        <section className="feed-filters articles-filters">
+          <div className="search-wrap articles-search-wrap">
+            <Search className="search-icon" size={16} />
+            <input
+              className="search-input"
+              value={query}
+              placeholder="Search by pet: dog, cat, rabbit..."
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => event.key === "Enter" && handleSearch()}
+            />
+            <button className="article-search-btn" onClick={() => handleSearch()}>
               Search
             </button>
           </div>
-        </div>
 
-        {/* Quick chips */}
-        <div className="pet-chips" style={{ marginBottom: 12 }}>
-          {QUICK_PETS.map((p) => (
-            <button key={p} className="pet-chip" onClick={() => handleSearch(p)}
-              style={{ textTransform: "capitalize" }}>
-              {p}
-            </button>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--border)", marginBottom: 14 }}>
-          {[{ key: "browse", label: "Browse" }, { key: "saved", label: `Saved (${savedCount})` }].map(({ key, label }) => (
-            <button key={key} onClick={() => setActiveTab(key)} style={{
-              padding: "8px 16px", border: "none", background: "none", cursor: "pointer",
-              fontSize: "0.875rem", fontWeight: 500,
-              color: activeTab === key ? "var(--secondary)" : "var(--muted-text)",
-              borderBottom: activeTab === key ? "2px solid var(--secondary)" : "2px solid transparent",
-              marginBottom: -1,
-            }}>{label}</button>
-          ))}
-        </div>
-
-        {/* Category filters — browse tab only */}
-        {activeTab === "browse" && articles.length > 0 && (
-          <div className="pet-chips" style={{ marginBottom: 14 }}>
-            {CATEGORIES.filter((c) => c === "All" || presentCategories.has(c)).map((cat) => (
-              <button key={cat} className={`pet-chip ${activeFilter === cat ? "active" : ""}`}
-                onClick={() => setActiveFilter(cat)}>
-                {cat}
+          <div className="pet-chips">
+            {QUICK_PETS.map((pet) => (
+              <button
+                key={pet}
+                className="pet-chip"
+                onClick={() => handleSearch(pet)}
+              >
+                {pet}
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="article-tabs">
+          <button
+            className={activeTab === "browse" ? "active" : ""}
+            onClick={() => setActiveTab("browse")}
+          >
+            Browse
+          </button>
+          <button
+            className={activeTab === "saved" ? "active" : ""}
+            onClick={() => setActiveTab("saved")}
+          >
+            Saved ({savedCount})
+          </button>
+        </section>
+
+        {activeTab === "browse" && articles.length > 0 && (
+          <section className="pet-chips article-category-filters">
+            {CATEGORIES.filter((category) => category === "All" || presentCategories.has(category)).map(
+              (category) => (
+                <button
+                  key={category}
+                  className={`pet-chip ${activeFilter === category ? "active" : ""}`}
+                  onClick={() => setActiveFilter(category)}
+                >
+                  {category}
+                </button>
+              ),
+            )}
+          </section>
         )}
 
-        {/* Content */}
-        {activeTab === "browse" ? (
-          loading ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "var(--muted-text)", fontSize: "0.875rem" }}>
-              <div style={{
-                width: 28, height: 28, border: "2px solid var(--border)",
-                borderTopColor: "var(--secondary)", borderRadius: "50%",
-                animation: "spin 0.8s linear infinite", margin: "0 auto 12px",
-              }} />
-              Fetching articles...
-            </div>
-          ) : filteredArticles.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#bbb" }}>
-              <p style={{ fontSize: 36, margin: "0 0 8px" }}>🐾</p>
-              <p style={{ fontSize: "0.875rem", color: "var(--muted-text)" }}>
-                {articles.length === 0
-                  ? "Search for a pet to discover articles and tips"
-                  : "No articles match this filter"}
-              </p>
-            </div>
-          ) : (
-            <div style={{ columns: 2, columnGap: 12 }} className="articles-columns">
-              {filteredArticles.map((a) => <ArticleCard key={a.id} article={a} />)}
-            </div>
-          )
-        ) : (
-          savedAll.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#bbb" }}>
-              <p style={{ fontSize: 36, margin: "0 0 8px" }}>🤍</p>
-              <p style={{ fontSize: "0.875rem", color: "var(--muted-text)" }}>No saved articles yet — heart an article to save it</p>
-            </div>
-          ) : (
-            Object.entries(saved).map(([pet, arts]) => arts.length > 0 && (
-              <div key={pet} style={{ marginBottom: "1.5rem" }}>
-                <p style={{
-                  fontSize: "0.75rem", fontWeight: 600, color: "var(--muted-text)",
-                  textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8,
-                }}>{pet}</p>
-                <div style={{ columns: 2, columnGap: 12 }}>
-                  {arts.map((a) => <ArticleCard key={a.id} article={a} />)}
-                </div>
+        {activeTab === "browse" && (
+          <section>
+            {loading ? (
+              <div className="article-empty-state">
+                <div className="article-spinner" />
+                <p>Fetching articles...</p>
               </div>
-            ))
-          )
+            ) : error ? (
+              <div className="article-empty-state">
+                <p>⚠️</p>
+                <span>{error}</span>
+              </div>
+            ) : filteredArticles.length === 0 ? (
+              <div className="article-empty-state">
+                <p>🐾</p>
+                <span>
+                  {articles.length === 0
+                    ? "Search for a pet to discover articles and tips."
+                    : "No articles match this filter."}
+                </span>
+              </div>
+            ) : (
+              <div className="articles-grid">
+                {filteredArticles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === "saved" && (
+          <section>
+            {savedCount === 0 ? (
+              <div className="article-empty-state">
+                <p>🤍</p>
+                <span>No saved articles yet — heart an article to save it.</span>
+              </div>
+            ) : (
+              Object.entries(savedArticles).map(
+                ([pet, petArticles]) =>
+                  petArticles.length > 0 && (
+                    <div className="saved-article-group" key={pet}>
+                      <h3>{pet}</h3>
+                      <div className="articles-grid">
+                        {petArticles.map((article) => (
+                          <ArticleCard key={article.id} article={article} />
+                        ))}
+                      </div>
+                    </div>
+                  ),
+              )
+            )}
+          </section>
         )}
       </main>
 
-      {/* Note Modal */}
-      {noteModal && (
+      {noteArticle && (
         <div
-          onClick={(e) => e.target === e.currentTarget && setNoteModal(null)}
-          style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: 16, zIndex: 100,
-          }}
+          className="article-modal-backdrop"
+          onClick={(event) => event.target === event.currentTarget && setNoteArticle(null)}
         >
-          <div style={{
-            background: "#fff", borderRadius: 18, padding: "1.25rem",
-            width: "100%", maxWidth: 420,
-            boxShadow: "0 8px 40px rgba(0,0,0,0.15)",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
-              <p style={{ fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.4, flex: 1, margin: 0 }}>
-                {noteModal.title}
-              </p>
-              <button onClick={() => setNoteModal(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa" }}>
+          <div className="article-modal">
+            <div className="article-modal-header">
+              <h2>{noteArticle.title}</h2>
+              <button onClick={() => setNoteArticle(null)} aria-label="Close note modal">
                 <X size={18} />
               </button>
             </div>
+
             <textarea
               value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
+              onChange={(event) => setNoteText(event.target.value)}
               placeholder="Write your personal notes about this article..."
-              style={{
-                width: "100%", minHeight: 120, padding: "10px 12px",
-                border: "1px solid var(--border)", borderRadius: 10,
-                fontFamily: "inherit", fontSize: "0.813rem", color: "var(--text)",
-                background: "var(--background)", resize: "vertical", outline: "none",
-                marginBottom: 12, boxSizing: "border-box",
-              }}
             />
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button
-                onClick={() => setNoteText("")}
-                style={{
-                  padding: "8px 16px", borderRadius: 999, border: "1px solid var(--border)",
-                  background: "#fff", cursor: "pointer", fontSize: "0.813rem",
-                }}
-              >
-                Clear
-              </button>
-              <button
-                onClick={saveNote}
-                style={{
-                  padding: "8px 16px", borderRadius: 999, border: "none",
-                  background: "var(--secondary)", color: "#fff",
-                  cursor: "pointer", fontSize: "0.813rem", fontWeight: 600,
-                }}
-              >
+
+            <div className="article-modal-actions">
+              <button onClick={() => setNoteText("")}>Clear</button>
+              <button className="primary" onClick={saveNote}>
                 Save note
               </button>
             </div>
@@ -409,28 +361,36 @@ Each item: {"id":"unique-kebab-slug","title":"...","pet":"${q.toLowerCase()}","c
         </div>
       )}
 
-      {/* Spinner keyframe */}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-
-      {/* Bottom nav */}
       <nav className="bottom-nav">
-        <button className={location.pathname === "/dashboard" ? "active" : ""} onClick={() => navigate("/dashboard")}>
-          <Home size={22} /><span>Feed</span>
+        <button
+          className={location.pathname === "/dashboard" ? "active" : ""}
+          onClick={() => navigate("/dashboard")}
+        >
+          <Home size={22} /> <span>Feed</span>
         </button>
-        <button className={location.pathname === "/places" ? "active" : ""} onClick={() => navigate("/places")}>
-          <MapPin size={22} /><span>Places</span>
+        <button
+          className={location.pathname === "/places" ? "active" : ""}
+          onClick={() => navigate("/places")}
+        >
+          <MapPin size={22} /> <span>Places</span>
         </button>
-        <button className={location.pathname === "/events" ? "active" : ""} onClick={() => navigate("/events")}>
-          <Calendar size={22} /><span>Events</span>
+        <button
+          className={location.pathname === "/events" ? "active" : ""}
+          onClick={() => navigate("/events")}
+        >
+          <Calendar size={22} /> <span>Events</span>
         </button>
-        <button className={location.pathname === "/articles" ? "active" : ""} onClick={() => navigate("/articles")}>
-          <BookOpen size={22} /><span>Articles</span>
+        <button
+          className={location.pathname === "/articles" ? "active" : ""}
+          onClick={() => navigate("/articles")}
+        >
+          <BookOpen size={22} /> <span>Articles</span>
         </button>
-        <button className={location.pathname === "/create" ? "active" : ""} onClick={() => navigate(token ? "/create" : "/login")}>
-          <PlusSquare size={22} /><span>Create</span>
+        <button onClick={() => navigate(token ? "/create" : "/login")}>
+          <PlusSquare size={22} /> <span>Create</span>
         </button>
-        <button className={location.pathname === "/profile" ? "active" : ""} onClick={() => navigate(token ? "/profile" : "/login")}>
-          <User size={22} /><span>Profile</span>
+        <button onClick={() => navigate(token ? "/profile" : "/login")}>
+          <User size={22} /> <span>Profile</span>
         </button>
       </nav>
     </div>
