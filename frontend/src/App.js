@@ -12,6 +12,7 @@ import ForgotPasswordPage from "./Pages/ForgotPasswordPage";
 import ResetPasswordPage from "./Pages/ResetPasswordPage";
 import LandingPage from "./Pages/Landingpage";
 import EventPlannerPage from "./Pages/Eventplannerpage";
+import PetArticlesPage from "./Pages/PetArticlesPage";
 import "./App.css";
 
 function PrivateRoute({ children }) {
@@ -75,6 +76,7 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/events" element={<EventPlannerPage />} />
+      <Route path="/articles" element={<PetArticlesPage />} />
 
       {/* Public — post detail view (visitors can read) */}
       <Route path="/posts/:id" element={<PostDetailPage />} />
