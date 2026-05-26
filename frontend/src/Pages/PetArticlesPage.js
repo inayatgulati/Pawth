@@ -48,11 +48,12 @@ export default function PetArticlesPage() {
       const res = await fetch(`${API_URL}/api/ai/generate-event`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-       body: JSON.stringify({
+      body: JSON.stringify({
   prompt: `Return ONLY a valid JSON array, no markdown, no explanation.
 Give me 6 helpful pet care articles about: ${q}
 Each item: {"id":"unique-slug","title":"...","pet":"${q.toLowerCase()}","category":"Health or Nutrition or Behavior or Training or Grooming or Housing","summary":"2-3 sentences of advice."}`,
 }),
+      });
       const data = await res.json();
       const text = (data.result || "").replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(text);
