@@ -45,25 +45,24 @@ export default function PetArticlesPage() {
     setError("");
     setArticles([]);
     try {
-  const res = await fetch(`${API_URL}/api/ai/generate-event`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      prompt: `Return ONLY a valid JSON array, no markdown, no explanation.
-Give me 6 helpful pet care articles about: ${q}
-Each item: {"id":"unique-slug","title":"...","pet":"${q.toLowerCase()}","category":"Health or Nutrition or Behavior or Training or Grooming or Housing","summary":"2-3 sentences of advice."}`,
-    }),
-  });
-  const data = await res.json();
-  console.log("API response:", data);          // ← add this
-  const text = (data.result || "").replace(/```json|```/g, "").trim();
-  console.log("Parsed text:", text);           // ← add this
-  const parsed = JSON.parse(text);
-  setArticles(parsed);
-} catch (err) {
-  console.error("Error:", err);                // ← change catch to log err
-  setError("Something went wrong. Please try again.");
-}
+      const res = await fetch(`${API_URL}/api/ai/generate-event`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: `You are a pet care knowledge expert. Return ONLY a valid JSON array, no markdown fences, no explanation, no trailing text.
+Return exactly 6 helpful articles about: ${q}
+Each item must have: {"id":"unique-kebab-slug","title":"...","pet":"${q.toLowerCase()}","category":"<one of: Health, Nutrition, Behavior, Training, Grooming, Housing>","summary":"2-3 sentence helpful advice."}`,
+        }),
+      });
+      const data = await res.json();
+      const text = (data.result || "").replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(text);
+      setArticles(parsed);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    }
+    setLoading(false);
+  };
 
   const toggleSave = (article) => {
     setSaved((prev) => {
